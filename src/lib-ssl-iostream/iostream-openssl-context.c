@@ -281,8 +281,11 @@ load_ca_locations(struct ssl_iostream_context *ctx,
 		return 0;
 
 	*error_r = t_strdup_printf("Can't load CA certs from directory %s "
-				   "(ssl_client_ca_dir setting): %s",
-				   ca_dir, openssl_iostream_error());
+				   "(%s setting): %s",
+				   ca_dir,
+				   ctx->client_ctx ?
+				   "ssl_client_ca_dir" : "ssl_server_ca_dir",
+				   openssl_iostream_error());
 	return -1;
 }
 
@@ -630,6 +633,11 @@ ssl_iostream_context_load_ca(struct ssl_iostream_context *ctx,
 			return -1;
 		have_ca = TRUE;
 	}
+	if (!ctx->client_ctx && set->server_ca_dir != NULL && *set->server_ca_dir != '\0') {
+		if (load_ca_locations(ctx, set->server_ca_dir, error_r) < 0)
+			return -1;
+		have_ca = TRUE;
+	}
 	if (!have_ca && ctx->client_ctx) {
 		if (SSL_CTX_set_default_verify_paths(ctx->ssl_ctx) != 1) {
 			*error_r = t_strdup_printf(
@@ -638,7 +646,7 @@ ssl_iostream_context_load_ca(struct ssl_iostream_context *ctx,
 			return -1;
 		}
 	} else if (!have_ca && !set->allow_invalid_cert) {
-		*error_r = "Can't verify remote client certs without CA (ssl_server_ca_file setting)";
+		*error_r = "Can't verify remote client certs without CA (ssl_server_ca_* settings missing)";
 		return -1;
 	}
 	return 0;

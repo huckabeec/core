@@ -79,6 +79,7 @@ struct ssl_iostream_settings {
 	const char *curve_list;
 	struct settings_file ca;
 	const char *ca_dir;
+	const char *server_ca_dir;
 	struct ssl_iostream_cert cert;
 	/* alternative cert is for providing certificate using
 	   different key algorithm */

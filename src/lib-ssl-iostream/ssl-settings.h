@@ -34,6 +34,7 @@ struct ssl_server_settings {
 
 	const char *ssl;
 	const char *ssl_server_ca_file;
+	const char *ssl_server_ca_dir;
 	const char *ssl_server_cert_file;
 	const char *ssl_server_alt_cert_file;
 	const char *ssl_server_key_file;

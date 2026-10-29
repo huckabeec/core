@@ -79,6 +79,7 @@ const struct setting_parser_info ssl_setting_parser_info = {
 static const struct setting_define ssl_server_setting_defines[] = {
 	DEF(ENUM, ssl),
 	DEF(FILE, ssl_server_ca_file),
+	DEF(STR, ssl_server_ca_dir),
 	DEF(FILE, ssl_server_cert_file),
 	DEF(FILE, ssl_server_key_file),
 	DEF(FILE, ssl_server_alt_cert_file),
@@ -97,6 +98,7 @@ static const struct setting_define ssl_server_setting_defines[] = {
 static const struct ssl_server_settings ssl_server_default_settings = {
 	.ssl = "yes:no:required",
 	.ssl_server_ca_file = "",
+	.ssl_server_ca_dir = "",
 	.ssl_server_cert_file = "",
 	.ssl_server_key_file = "",
 	.ssl_server_alt_cert_file = "",
@@ -201,8 +203,8 @@ ssl_server_settings_check(void *_set, pool_t pool ATTR_UNUSED,
 
 	if (set->parsed_opts.request_client_cert &&
 	    set->parsed_opts.verify_client_cert &&
-	    *set->ssl_server_ca_file == '\0') {
-		*error_r = "ssl_server_request_client_cert=yes, but ssl_server_ca_file not provided";
+	    ( *set->ssl_server_ca_file == '\0' && *set->ssl_server_ca_dir == '\0' )) {
+		*error_r = "ssl_server_request_client_cert=yes, but neither ssl_server_ca_file or ssl_server_ca_dir was provided";
 		return FALSE;
 	}
 	return TRUE;
@@ -293,6 +295,7 @@ void ssl_server_settings_to_iostream_set(
 	pool_add_external_ref(set->pool, ssl_server_set->pool);
 
 	settings_file_get(ssl_server_set->ssl_server_ca_file, set->pool, &set->ca);
+	set->server_ca_dir = ssl_server_set->ssl_server_ca_dir;
 	settings_file_get(ssl_server_set->ssl_server_cert_file,
 			  set->pool, &set->cert.cert);
 	settings_file_get(ssl_server_set->ssl_server_key_file,
